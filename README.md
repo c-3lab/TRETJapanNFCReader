@@ -131,7 +131,17 @@ class ViewController: UIViewController, DriversLicenseReaderSessionDelegate {
 - Item 2: `D3921000310001010100`
 - Item 3: `D3921000310001010401`
 
-2. ライブラリをインポートし、`IndividualNumberReader` を初期化した後でスキャンを開始する。
+
+2. マイナンバーカードの電子証明書を読み取るには、開発している iOS Application の Info.plist に 以下を追加する。  
+- userAuthenticationPin: `0018`
+- userAuthenticationPrivate: `0017`
+- userAuthenticationCertificate: `000A`
+- digitalSignaturePin: `001B`
+- digitalSignaturePrivate: `001A`
+- digitalSignatureCertificate: `0001`
+- computeDigitalSignature: `0080`
+
+3. ライブラリをインポートし、`IndividualNumberReader` を初期化した後でスキャンを開始する。
 ```swift
 import UIKit
 import TRETJapanNFCReader

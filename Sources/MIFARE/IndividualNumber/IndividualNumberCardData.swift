@@ -14,4 +14,8 @@ public struct IndividualNumberCardData {
     public var token: String?
     /// マイナンバー
     public var individualNumber: String?
+    /// 電子証明書
+    public var digitalCertificate: [UInt8]?
+    /// 電子署名
+    public var digitalSignature: [UInt8]?
 }

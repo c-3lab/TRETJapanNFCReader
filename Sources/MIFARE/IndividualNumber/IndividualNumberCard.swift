@@ -30,6 +30,12 @@ public enum IndividualNumberCardApplication: CaseIterable {
     case basicResidentRegistrationApplication
 }
 
+public enum IndividualNumberCardExecuteType: CaseIterable {
+    ///　電子署名生成(利用者証明用電子証明書)
+    case computeDigitalSignatureForUserAuthentication
+    ///　電子署名生成(署名用電子証明書)
+    case computeDigitalSignatureForSignature
+}
 /// マイナンバーカード
 @available(iOS 13.0, *)
 public struct IndividualNumberCard {
