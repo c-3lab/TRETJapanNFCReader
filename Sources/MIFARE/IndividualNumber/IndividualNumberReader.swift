@@ -205,7 +205,7 @@ public class IndividualNumberReader: MiFareReader {
                 case .individualNumber:
                     individualNumberCard = self.readIndividualNumber(session, individualNumberCard, cardInfoInputSupportAppPIN: self.cardInfoInputSupportAppPIN)
                 case .userAuthenticationCertificate:
-                    individualNumberCard = self.getDigitalCertificateForUserVerification(session, individualNumberCard)
+                    individualNumberCard = self.getUserAuthenticationCertificate(session, individualNumberCard)
                 case .digitalSignatureCertificate:
                     individualNumberCard = self.getDigitalCertificateForDigitalSignature(session, individualNumberCard, digitalSignaturePIN: self.digitalSignaturePIN)
                 case .computeDigitalSignatureForUserAuthentication:

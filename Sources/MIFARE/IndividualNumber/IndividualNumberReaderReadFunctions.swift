@@ -360,7 +360,7 @@ extension IndividualNumberReader {
         return individualNumberCard
     }
     
-    internal func getDigitalCertificateForUserVerification(_ session: NFCTagReaderSession,_ individualNumberCard: IndividualNumberCard)-> IndividualNumberCard{
+    internal func getUserAuthenticationCertificate(_ session: NFCTagReaderSession,_ individualNumberCard: IndividualNumberCard)-> IndividualNumberCard{
         var individualNumberCard = individualNumberCard
         let tag = individualNumberCard.tag
         let semaphore = DispatchSemaphore(value: 0)
