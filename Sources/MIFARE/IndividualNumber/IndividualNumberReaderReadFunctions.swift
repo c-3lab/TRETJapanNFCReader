@@ -647,10 +647,10 @@ extension IndividualNumberReader {
     }
     
     internal func getHexNum(hexString: String)-> (upper:UInt8, lower:UInt8) {
-        let UpperStr = String(hexString.prefix(2))
-        let LowerStr = String(hexString.suffix(2))
-        let upper = UInt8(UpperStr, radix: 16)!
-        let lower = UInt8(LowerStr, radix: 16)!
+        let upperStr = String(hexString.prefix(2))
+        let lowerStr = String(hexString.suffix(2))
+        let upper = UInt8(upperStr, radix: 16)!
+        let lower = UInt8(lowerStr, radix: 16)!
         
         return (upper, lower)
     }
