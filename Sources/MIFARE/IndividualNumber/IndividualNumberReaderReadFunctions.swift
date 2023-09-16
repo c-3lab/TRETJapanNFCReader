@@ -471,7 +471,7 @@ extension IndividualNumberReader {
                             }
 
                             let signedData = [UInt8](responseData)
-                            individualNumberCard.data.computeDigitalSignatureForSignature = signedData
+                            individualNumberCard.data.computeDigitalSignatureForDigitalSignature = signedData
                             semaphore.signal()
                         }
                     }

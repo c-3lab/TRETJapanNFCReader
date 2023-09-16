@@ -21,5 +21,5 @@ public struct IndividualNumberCardData {
     /// 電子署名(利用者証明用電子証明書)
     public var computeDigitalSignatureForUserAuthentication: [UInt8]?
     /// 電子署名(署名用電子証明書)
-    public var computeDigitalSignatureForSignature: [UInt8]?
+    public var computeDigitalSignatureForDigitalSignature: [UInt8]?
 }
