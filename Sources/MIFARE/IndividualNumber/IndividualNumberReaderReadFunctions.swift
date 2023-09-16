@@ -484,7 +484,7 @@ extension IndividualNumberReader {
     }
     
     //署名用証明書を読みこむ
-    internal func getDigitalCertificateForDigitalSignature(_ session: NFCTagReaderSession,_ individualNumberCard: IndividualNumberCard, digitalSignaturePIN: [UInt8])-> IndividualNumberCard{
+    internal func getDigitalSignatureCertificate(_ session: NFCTagReaderSession,_ individualNumberCard: IndividualNumberCard, digitalSignaturePIN: [UInt8])-> IndividualNumberCard{
         var individualNumberCard = individualNumberCard
         let tag = individualNumberCard.tag
         let semaphore = DispatchSemaphore(value: 0)
