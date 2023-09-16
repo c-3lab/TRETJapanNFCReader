@@ -348,7 +348,7 @@ extension IndividualNumberReader {
                             }
                             
                             let signedData = [UInt8](responseData)
-                            individualNumberCard.data.digitalSignature = signedData
+                            individualNumberCard.data.computeDigitalSignatureForUserAuthentication = signedData
                             semaphore.signal()
                         }
                     }
@@ -400,7 +400,7 @@ extension IndividualNumberReader {
                         }
                         
                         let digitalCertificate = [UInt8](responseData)
-                        individualNumberCard.data.digitalCertificate = digitalCertificate
+                        individualNumberCard.data.userAuthenticationCertificate = digitalCertificate
                         semaphore.signal()
                     }
                     
@@ -414,9 +414,9 @@ extension IndividualNumberReader {
     }
     
     // 署名用電子証明書で署名
-    internal func computeDigitalSignatureForSignature(_ session: NFCTagReaderSession, _ individualNumberCard: IndividualNumberCard, signaturePIN: [UInt8], dataToSign: [UInt8]) -> IndividualNumberCard {
+    internal func computeDigitalSignatureForDigitalSignature(_ session: NFCTagReaderSession, _ individualNumberCard: IndividualNumberCard, digitalSignaturePIN: [UInt8], dataToSign: [UInt8]) -> IndividualNumberCard {
 
-        if signaturePIN.isEmpty {
+        if digitalSignaturePIN.isEmpty {
             session.invalidate(errorMessage: IndividualNumberReaderError.needPIN.errorDescription!)
             self.delegate?.japanNFCReaderSession(didInvalidateWithError: IndividualNumberReaderError.needPIN)
             return individualNumberCard
@@ -445,7 +445,7 @@ extension IndividualNumberReader {
                     return
                 }
 
-                self.verify(tag: tag, pin: signaturePIN) { (responseData, sw1, sw2, error) in
+                self.verify(tag: tag, pin: digitalSignaturePIN) { (responseData, sw1, sw2, error) in
                     // 認証用パスワードを入力してセキュリティステータスを更新する
                     self.printData(responseData, sw1, sw2)
 
@@ -471,7 +471,7 @@ extension IndividualNumberReader {
                             }
 
                             let signedData = [UInt8](responseData)
-                            individualNumberCard.data.digitalSignature = signedData
+                            individualNumberCard.data.computeDigitalSignatureForSignature = signedData
                             semaphore.signal()
                         }
                     }
@@ -484,7 +484,7 @@ extension IndividualNumberReader {
     }
     
     //署名用証明書を読みこむ
-    internal func getDigitalCertificateForSignature(_ session: NFCTagReaderSession,_ individualNumberCard: IndividualNumberCard, signaturePIN: [UInt8])-> IndividualNumberCard{
+    internal func getDigitalCertificateForDigitalSignature(_ session: NFCTagReaderSession,_ individualNumberCard: IndividualNumberCard, digitalSignaturePIN: [UInt8])-> IndividualNumberCard{
         var individualNumberCard = individualNumberCard
         let tag = individualNumberCard.tag
         let semaphore = DispatchSemaphore(value: 0)
@@ -506,7 +506,7 @@ extension IndividualNumberReader {
                     return
                 }
 
-                self.verify(tag: tag, pin: signaturePIN) { (responseData, sw1, sw2, error) in
+                self.verify(tag: tag, pin: digitalSignaturePIN) { (responseData, sw1, sw2, error) in
                     // 認証用パスワードを入力してセキュリティステータスを更新する
                     self.printData(responseData, sw1, sw2)
 
@@ -543,7 +543,7 @@ extension IndividualNumberReader {
                                 }
 
                                 let digitalCertificate = [UInt8](responseData)
-                                individualNumberCard.data.digitalCertificate = digitalCertificate
+                                individualNumberCard.data.digitalSignatureCertificate = digitalCertificate
                                 semaphore.signal()
                             }
 

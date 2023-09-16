@@ -23,10 +23,12 @@ public class IndividualNumberReader: MiFareReader {
     
     internal let delegate: IndividualNumberReaderSessionDelegate?
     private var items: [IndividualNumberCardItem] = []
-    private var individualNumberCardExecuteType: IndividualNumberCardExecuteType?
+    private var computeDigitalSignatureType: IndividualNumberCardSignatureType?
     private var userAuthenticationPIN: [UInt8] = []
-    private var signaturePIN: [UInt8] = []
-    private var dataToSign: [UInt8] = []
+    private var digitalSignaturePIN: [UInt8] = []
+    private var dataToSignForUserAuthentication: [UInt8] = []
+    private var userAuthenticationSignData: [UInt8] = []
+    private var digitalSignatureSignData: [UInt8] = []
     private var cardInfoInputSupportAppPIN: [UInt8] = []
     
     private var lookupRemainingPINType: IndividualNumberCardPINType?
@@ -58,6 +60,28 @@ public class IndividualNumberReader: MiFareReader {
         self.lookupRemainingPINType = pinType
         self.lookupRemainingPINCompletion = completion
         self.beginScanning()
+    }
+    
+    public func computeDigitalSignature(signatureType:IndividualNumberCardSignatureType, pin: String = "", dataToSign: [UInt8]) {
+        self.computeDigitalSignatureType = signatureType
+        var items: [IndividualNumberCardItem] = []
+        
+        switch self.computeDigitalSignatureType! {
+        case .userAuthentication:
+            if let userAuthenticationPIN = pin.data(using: .utf8) {
+                self.userAuthenticationPIN = [UInt8](userAuthenticationPIN)
+            }
+            items = [IndividualNumberCardItem.userAuthenticationCertificate, IndividualNumberCardItem.computeDigitalSignatureForUserAuthentication]
+            self.userAuthenticationSignData = dataToSign
+        case .digitalSignature:
+            if let digitalSignaturePIN = pin.data(using: .utf8) {
+                self.digitalSignaturePIN = [UInt8](digitalSignaturePIN)
+            }
+            items = [IndividualNumberCardItem.digitalSignatureCertificate, IndividualNumberCardItem.computeDigitalSignatureForDigitalSignature]
+            self.digitalSignatureSignData = dataToSign
+        }
+                
+        self.get(items: items)
     }
     
     private func beginScanning() {
@@ -149,31 +173,22 @@ public class IndividualNumberReader: MiFareReader {
             session.alertMessage = Localized.nfcTagReaderSessionReadingMessage.string()
             
             let individualNumberCard = IndividualNumberCard(tag: individualNumberCardTag, data: IndividualNumberCardData())
-            switch self.individualNumberCardExecuteType {
-            case .computeDigitalSignatureForUserAuthentication,.computeDigitalSignatureForSignature:
-                self.executeWithADPUFunction(session, individualNumberCardTag, individualNumberCard) { (individualNumberCard) in
+            
+            if let pinType = self.lookupRemainingPINType {
+                DispatchQueue(label: "TRETJPNRIndividualNumberReader", qos: .default).async {
+                    let remaining = self.lookupRemainingPIN(session, individualNumberCardTag, pinType)
+                    session.alertMessage = Localized.nfcTagReaderSessionDoneMessage.string()
+                    session.invalidate()
+                    DispatchQueue.main.async {
+                        self.lookupRemainingPINCompletion?(remaining)
+                    }
+                }
+            } else {
+                self.getItems(session, individualNumberCard) { (individualNumberCard) in
                     session.alertMessage = Localized.nfcTagReaderSessionDoneMessage.string()
                     session.invalidate()
                     
                     self.delegate?.individualNumberReaderSession(didRead: individualNumberCard.data)
-                }
-            default:
-                if let pinType = self.lookupRemainingPINType {
-                    DispatchQueue(label: "TRETJPNRIndividualNumberReader", qos: .default).async {
-                        let remaining = self.lookupRemainingPIN(session, individualNumberCardTag, pinType)
-                        session.alertMessage = Localized.nfcTagReaderSessionDoneMessage.string()
-                        session.invalidate()
-                        DispatchQueue.main.async {
-                            self.lookupRemainingPINCompletion?(remaining)
-                        }
-                    }
-                } else {
-                    self.getItems(session, individualNumberCard) { (individualNumberCard) in
-                        session.alertMessage = Localized.nfcTagReaderSessionDoneMessage.string()
-                        session.invalidate()
-                        
-                        self.delegate?.individualNumberReaderSession(didRead: individualNumberCard.data)
-                    }
                 }
             }
         }
@@ -189,53 +204,18 @@ public class IndividualNumberReader: MiFareReader {
                     individualNumberCard = self.readJPKIToken(session, individualNumberCard)
                 case .individualNumber:
                     individualNumberCard = self.readIndividualNumber(session, individualNumberCard, cardInfoInputSupportAppPIN: self.cardInfoInputSupportAppPIN)
+                case .userAuthenticationCertificate:
+                    individualNumberCard = self.getDigitalCertificateForUserVerification(session, individualNumberCard)
+                case .digitalSignatureCertificate:
+                    individualNumberCard = self.getDigitalCertificateForDigitalSignature(session, individualNumberCard, digitalSignaturePIN: self.digitalSignaturePIN)
+                case .computeDigitalSignatureForUserAuthentication:
+                    individualNumberCard = self.computeDigitalSignatureForUserAuthentication(session, individualNumberCard, userAuthenticationPIN: self.userAuthenticationPIN, dataToSign: self.userAuthenticationSignData)
+                case .computeDigitalSignatureForDigitalSignature:
+                    individualNumberCard = self.computeDigitalSignatureForDigitalSignature(session, individualNumberCard, digitalSignaturePIN: self.digitalSignaturePIN, dataToSign: self.digitalSignatureSignData)
                 }
             }
             completion(individualNumberCard)
         }
-    }
-    
-    private func executeWithADPUFunction(_ session: NFCTagReaderSession,_ individualNumberCardTag: NFCISO7816Tag, _ individualNumberCard: IndividualNumberCard, completion: @escaping (IndividualNumberCard) -> Void){
-        var individualNumberCard = individualNumberCard
-        DispatchQueue(label: "TRETJPNRIndividualNumberReader", qos: .default).async {
-            switch self.individualNumberCardExecuteType {
-            case .computeDigitalSignatureForUserAuthentication:
-                    individualNumberCard = self.getDigitalCertificateForUserVerification(session, individualNumberCard)
-                    individualNumberCard = self.computeDigitalSignatureForUserAuthentication(session, individualNumberCard, userAuthenticationPIN: self.userAuthenticationPIN, dataToSign: self.dataToSign)
-            case .computeDigitalSignatureForSignature:
-                    individualNumberCard = self.getDigitalCertificateForSignature(session, individualNumberCard, signaturePIN:self.signaturePIN)
-                    individualNumberCard = self.computeDigitalSignatureForSignature(session, individualNumberCard, signaturePIN: self.signaturePIN, dataToSign: self.dataToSign)
-            case .none:
-                break
-            }
-            completion(individualNumberCard)
-        }
-    }
-    
-    /// マイナンバーカードで利用者証明用電子署名を生成する
-    /// - Parameters:
-    ///   - userAuthenticationPIN: 利用者証明用秘密鍵用暗証番号
-    ///   - dataToSign: 署名対象データ
-    public func computeDigitalSignatureForUserAuthentication(userAuthenticationPIN: String = "",dataToSign: [UInt8]) {
-        self.individualNumberCardExecuteType = .computeDigitalSignatureForUserAuthentication
-        if let userAuthenticationPIN = userAuthenticationPIN.data(using: .utf8){
-            self.userAuthenticationPIN = [UInt8](userAuthenticationPIN)
-        }
-        self.dataToSign = dataToSign
-        self.beginScanning()
-    }
-    
-    /// マイナンバーカードで署名用電子署名を生成する
-    /// - Parameters:
-    ///   - SignaturePIN: 署名用秘密鍵用暗証番号
-    ///   - dataToSign: 署名対象データ
-    public func computeDigitalSignatureForSignature(signaturePIN: String = "",dataToSign: [UInt8]) {
-        self.individualNumberCardExecuteType = .computeDigitalSignatureForSignature
-        if let signaturePIN = signaturePIN.data(using: .utf8){
-            self.signaturePIN = [UInt8](signaturePIN)
-        }
-        self.dataToSign = dataToSign
-        self.beginScanning()
     }
 }
 
