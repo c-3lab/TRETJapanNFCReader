@@ -466,7 +466,7 @@ extension IndividualNumberReader {
                             // 対象データを送って署名する
                             self.printData(responseData, sw1, sw2)
 
-                            if self.tryHandleAPDUError(ADPUPattern: "COMPUTE DIGITAL SIGNATURE(forSignature)", session: session, error: error, sw1: sw1, sw2: sw2) == true {
+                            if self.tryHandleAPDUError(ADPUPattern: "COMPUTE DIGITAL SIGNATURE(forDigitalSignature)", session: session, error: error, sw1: sw1, sw2: sw2) == true {
                                 return
                             }
 
