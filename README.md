@@ -132,7 +132,7 @@ class ViewController: UIViewController, DriversLicenseReaderSessionDelegate {
 - Item 3: `D3921000310001010401`
 
 
-2. マイナンバーカードの電子証明書を読み取るには、開発している iOS Application の Info.plist に 以下を追加する。 指定する値についてはJ-LISに問い合わせる。 
+2. マイナンバーカードの電子証明書を読み取るには、開発している iOS Application の Info.plist に 以下を追加する。 指定する値については接続するプラットフォーム事業者へ問い合わせる。 
 - userAuthenticationPin 
 - userAuthenticationPrivate
 - userAuthenticationCertificate
