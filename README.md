@@ -126,10 +126,10 @@ class ViewController: UIViewController, DriversLicenseReaderSessionDelegate {
 
 #### マイナンバーカードの場合
 1. マイナンバーカードを読み取るには、開発している iOS Application の Info.plist に "ISO7816 application identifiers for NFC Tag Reader Session (com.apple.developer.nfc.readersession.iso7816.select-identifiers)" を追加する。ISO7816 application identifiers for NFC Tag Reader Session には以下を含める必要がある。
-- Item 0: `D392F000260100000001`
-- Item 1: `D3921000310001010408`
-- Item 2: `D3921000310001010100`
-- Item 3: `D3921000310001010401`
+- Item 0: ``
+- Item 1: ``
+- Item 2: ``
+- Item 3: ``
 
 2. ライブラリをインポートし、`IndividualNumberReader` を初期化した後でスキャンを開始する。
 ```swift
