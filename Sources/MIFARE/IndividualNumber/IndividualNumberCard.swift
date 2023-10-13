@@ -17,6 +17,14 @@ public enum IndividualNumberCardItem: CaseIterable {
     case tokenInfo
     /// マイナンバー
     case individualNumber
+    /// 利用者証明用電子証明書
+    case userAuthenticationCertificate
+    /// 署名用電子証明書
+    case digitalSignatureCertificate
+    /// 電子署名生成(利用者証明用電子証明書)
+    case computeDigitalSignatureForUserAuthentication
+    /// 電子署名生成(署名用電子証明書)
+    case computeDigitalSignatureForDigitalSignature
 }
 
 public enum IndividualNumberCardApplication: CaseIterable {
@@ -28,6 +36,13 @@ public enum IndividualNumberCardApplication: CaseIterable {
     case cardInfoInputSupportApplication
     /// 住基AP
     case basicResidentRegistrationApplication
+}
+
+public enum IndividualNumberCardSignatureType: CaseIterable {
+    /// 利用者証明用電子証明書
+    case userAuthentication
+    /// 署名用電子証明書
+    case digitalSignature
 }
 
 /// マイナンバーカード

@@ -23,7 +23,12 @@ public class IndividualNumberReader: MiFareReader {
     
     internal let delegate: IndividualNumberReaderSessionDelegate?
     private var items: [IndividualNumberCardItem] = []
-    
+    private var computeDigitalSignatureType: IndividualNumberCardSignatureType?
+    private var userAuthenticationPIN: [UInt8] = []
+    private var digitalSignaturePIN: [UInt8] = []
+    private var dataToSignForUserAuthentication: [UInt8] = []
+    private var userAuthenticationSignData: [UInt8] = []
+    private var digitalSignatureSignData: [UInt8] = []
     private var cardInfoInputSupportAppPIN: [UInt8] = []
     
     private var lookupRemainingPINType: IndividualNumberCardPINType?
@@ -55,6 +60,28 @@ public class IndividualNumberReader: MiFareReader {
         self.lookupRemainingPINType = pinType
         self.lookupRemainingPINCompletion = completion
         self.beginScanning()
+    }
+    
+    public func computeDigitalSignature(signatureType:IndividualNumberCardSignatureType, pin: String = "", dataToSign: [UInt8]) {
+        self.computeDigitalSignatureType = signatureType
+        var items: [IndividualNumberCardItem] = []
+        
+        switch self.computeDigitalSignatureType! {
+        case .userAuthentication:
+            if let userAuthenticationPIN = pin.data(using: .utf8) {
+                self.userAuthenticationPIN = [UInt8](userAuthenticationPIN)
+            }
+            items = [IndividualNumberCardItem.userAuthenticationCertificate, IndividualNumberCardItem.computeDigitalSignatureForUserAuthentication]
+            self.userAuthenticationSignData = dataToSign
+        case .digitalSignature:
+            if let digitalSignaturePIN = pin.data(using: .utf8) {
+                self.digitalSignaturePIN = [UInt8](digitalSignaturePIN)
+            }
+            items = [IndividualNumberCardItem.digitalSignatureCertificate, IndividualNumberCardItem.computeDigitalSignatureForDigitalSignature]
+            self.digitalSignatureSignData = dataToSign
+        }
+                
+        self.get(items: items)
     }
     
     private func beginScanning() {
@@ -177,6 +204,14 @@ public class IndividualNumberReader: MiFareReader {
                     individualNumberCard = self.readJPKIToken(session, individualNumberCard)
                 case .individualNumber:
                     individualNumberCard = self.readIndividualNumber(session, individualNumberCard, cardInfoInputSupportAppPIN: self.cardInfoInputSupportAppPIN)
+                case .userAuthenticationCertificate:
+                    individualNumberCard = self.getUserAuthenticationCertificate(session, individualNumberCard)
+                case .digitalSignatureCertificate:
+                    individualNumberCard = self.getDigitalSignatureCertificate(session, individualNumberCard, digitalSignaturePIN: self.digitalSignaturePIN)
+                case .computeDigitalSignatureForUserAuthentication:
+                    individualNumberCard = self.computeDigitalSignatureForUserAuthentication(session, individualNumberCard, userAuthenticationPIN: self.userAuthenticationPIN, dataToSign: self.userAuthenticationSignData)
+                case .computeDigitalSignatureForDigitalSignature:
+                    individualNumberCard = self.computeDigitalSignatureForDigitalSignature(session, individualNumberCard, digitalSignaturePIN: self.digitalSignaturePIN, dataToSign: self.digitalSignatureSignData)
                 }
             }
             completion(individualNumberCard)

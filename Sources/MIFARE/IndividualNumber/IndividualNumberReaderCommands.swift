@@ -9,6 +9,8 @@
 #if os(iOS)
 import CoreNFC
 
+var apduComputeDigitalSignature:String = Bundle.main.object(forInfoDictionaryKey: "computeDigitalSignature") as! String
+
 @available(iOS 13.0, *)
 extension IndividualNumberReader {
     
@@ -46,6 +48,13 @@ extension IndividualNumberReader {
     internal func selectCardInfoInputSupportAP(tag: IndividualNumberCardTag, completionHandler: @escaping IndividualNumberReaderCompletionHandler) {
         let data = IndividualNumberCardAID.cardInfoInputSupportAP
         self.selectDF(tag: tag, data: data, completionHandler: completionHandler)
+    }
+    
+    internal func computeDigitalSignature(tag: IndividualNumberCardTag, expectedResponseLength: Int, dataToSign: [UInt8], completionHandler: @escaping IndividualNumberReaderCompletionHandler) {
+        let computeDigitalSignature = self.getHexNum(hexString: apduComputeDigitalSignature)
+        let apdu = NFCISO7816APDU(instructionClass: 0x80, instructionCode: 0x2A, p1Parameter: computeDigitalSignature.upper, p2Parameter: computeDigitalSignature.lower, data: Data(dataToSign), expectedResponseLength: expectedResponseLength)
+        
+        tag.sendCommand(apdu: apdu, completionHandler: completionHandler)
     }
 }
 
